@@ -88,3 +88,28 @@ class MotorJuego:
                     self.enemigos_sala2 = self.generar_enemigos_aleatorios(3, 2)
             else:
                 self.jugador.x = self.mapa_sala1.ancho - 2 # Si esta cerrada,empujamos al jugador a la posicion anterior (antes de la puerta)
+
+    def generar_enemigos_aleatorios(self, cantidad, sala):
+        nuevos = []
+        for _ in range(cantidad):
+            rx = random.randint(5, self.mapa_sala1.ancho - 3) #Elige coordenadas al azar evitando las paredes (ancho-3).
+            ry = random.randint(5, self.mapa_sala1.alto - 3)
+            
+            if sala == 1: # Creamos instancias diferentes según la sala (Dificultad progresiva).
+                nuevos.append(Enemigo("Orco", rx, ry, 40, 10, 5))
+            else:
+                nuevos.append(Enemigo("Elite", rx, ry, 60, 15, 7))
+        return nuevos
+
+    def _verificar_estado(self):
+        if not self.jugador.esta_viva:
+            print("\n¡HAS MUERTO! GAME OVER")
+            self.jugando = False
+            
+        if self.sala_actual == 2:
+            if not any(e.esta_viva for e in self.enemigos_sala2):
+                self._dibujar_escena() 
+                print("\n" + "="*30)
+                print("¡VICTORIA! Has despejado el Iceforge.")
+                print("="*30)
+                self.jugando = False
