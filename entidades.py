@@ -87,3 +87,37 @@ class Proyectil(Entidad):
             self._vida = 0
             #Aunque la función termine, el objeto sigue existiendo en la memoria, Cuando el bucle principal vuelva a ejecutarse en el siguiente frame, volverá a llamar a proyectil.actuar().
 
+class Enemigo(Entidad):  
+    def __init__(self, nombre, x, y, vida, fuerza, rango_vision): # Constructor con atributo extra.
+        super().__init__(nombre, x, y, 0, 0, vida, fuerza) 
+        self.rango_vision = rango_vision # Que tan lejos ve este enemigo.
+
+    def actuar(self, mapa, motor): 
+        if not self.esta_viva: # Si está muerto, no hace nada.
+                    return
+
+        jugador = motor.jugador # Obtiene la referencia del Jugador.
+        distancia = abs(self.x - jugador.x) + abs(self.y - jugador.y)
+        
+        if distancia == 1:
+            self.atacar(jugador) # si el jugador esta a lado lo ataca.
+    
+        elif 1 < distancia <= self.rango_vision:
+            dx = 1 if self.x < jugador.x else -1 if self.x > jugador.x else 0 #derecha (+1) izquierda (-1).
+            dy = 1 if self.y < jugador.y else -1 if self.y > jugador.y else 0 # subir (-1) bajar (+1).
+            
+            nueva_x = self.x + dx # Calcula posición destino.
+            nueva_y = self.y + dy
+
+            ocupado_por_jugador = (nueva_x == jugador.x and nueva_y == jugador.y) # Verificaciones técnicas para no encimarse.
+            otro_enemigo = motor.obtener_enemigo_en(nueva_x, nueva_y)
+            
+            if not ocupado_por_jugador and otro_enemigo is None: # Si el camino esta libre se mueve hacia el jugador.
+                self.mover(dx, dy, mapa)
+
+            ocupado_por_jugador = (nueva_x == jugador.x and nueva_y == jugador.y)
+            
+            otro_enemigo = motor.obtener_enemigo_en(nueva_x, nueva_y)
+            
+            if not ocupado_por_jugador and otro_enemigo is None:
+                self.mover(dx, dy, mapa)
