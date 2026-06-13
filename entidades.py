@@ -60,3 +60,30 @@ class Jugador(Entidad):
             
             elif tecla == 'q':
                     motor.jugando = False
+
+class Proyectil(Entidad): 
+    def __init__(self, x, y, dx, dy, fuerza): 
+        super().__init__("Bala", x, y, dx, dy, 1, fuerza)  
+        
+    def actuar(self, mapa, motor): 
+        objetivo_inmediato = motor.obtener_enemigo_en(self.x, self.y) #Verifica si hay un enemigo en su pos. actual
+        
+        if objetivo_inmediato: 
+            objetivo_inmediato.recibir_danio(self._fuerza) # El proyectil daño al enemigo.
+            self._vida = 0 # 9. El proyectil se destruye a sí mismo 
+            return 
+
+        self.x += self.dx # Si no chocó, avanza según su dirección almacenada.
+        self.y += self.dy
+        
+        if not mapa.es_caminable(self.x, self.y): # Verificamos si el nuevo lugar es caminable. Si no lo es, el proyectil se destruye.
+            self._vida = 0
+            return
+
+        objetivo_final = motor.obtener_enemigo_en(self.x, self.y)
+        
+        if objetivo_final:
+            objetivo_final.recibir_danio(self._fuerza) 
+            self._vida = 0
+            #Aunque la función termine, el objeto sigue existiendo en la memoria, Cuando el bucle principal vuelva a ejecutarse en el siguiente frame, volverá a llamar a proyectil.actuar().
+
