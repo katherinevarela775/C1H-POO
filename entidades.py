@@ -37,3 +37,26 @@ class Entidad(ABC):
             
     @abstractmethod # Obliga a los hijos a tener este método.
     def actuar(self, mapa, motor=None): pass 
+
+class Jugador(Entidad): 
+    def __init__(self, nombre, x, y, vida, fuerza): 
+        super().__init__(nombre, x, y, 0, 0, vida, fuerza) 
+        
+    def actuar(self, mapa, motor=None): 
+        if msvcrt.kbhit():
+            tecla = msvcrt.getch().decode('utf-8').lower()
+
+            teclas_mov = {'w': (0, -1), 's': (0, 1), 'a': (-1, 0), 'd': (1, 0)} # Diccionario de vectores.
+            teclas_disparo = {'i': (0, -1), 'k': (0, 1), 'j': (-1, 0), 'l': (1, 0)} # Mapeo de ataque.
+
+            if tecla in teclas_mov: 
+                dx, dy = teclas_mov[tecla]
+                self.mover(dx, dy, mapa) # Llama al método heredado de Entidad.
+                
+            elif tecla in teclas_disparo: 
+                dx, dy = teclas_disparo[tecla]
+                nueva_bala = Proyectil(self.x + dx, self.y + dy, dx, dy, self._fuerza) # Crea un objeto nuevo de la clase Proyectil.
+                motor.proyectiles.append(nueva_bala) # Añade el objeto a la lista del motor.
+            
+            elif tecla == 'q':
+                    motor.jugando = False
