@@ -38,3 +38,53 @@ class MotorJuego:
             self._actualizar_logica() 
             self._verificar_estado() 
             time.sleep(0.30) 
+
+    def _dibujar_escena(self):
+            os.system('cls' if os.name == 'nt' else 'clear') # Limpiamos la consola
+            
+            entidades_s1 = self.enemigos_sala1[:]
+            entidades_s2 = self.enemigos_sala2[:] # Preparamos que vamos a dibujar en cada sala
+            
+            if self.sala_actual == 1:
+                entidades_s1.append(self.jugador)
+                entidades_s1.extend(self.proyectiles)   # Agrega al jugador y las balas solo a la sala en la que estamos, para que no se dibuje dos veces.
+            else:
+                entidades_s2.append(self.jugador)
+                entidades_s2.extend(self.proyectiles)
+
+            filas1 = self.mapa_sala1.crear_mapa(entidades_s1) # El mapa genera una representacion de si mismo ya con los caracteres correspondientes 
+            filas2 = self.mapa_sala2.crear_mapa(entidades_s2)
+
+            print(" SALA 1 ".center(self.mapa_sala1.ancho * 2) + "   " + " SALA 2 ".center(self.mapa_sala2.ancho * 2))
+            for f1, f2 in zip(filas1, filas2): #Emparejamos el primer elemento de cada iterable, luego el segundo, y así sucesivamente, lo que permite procesar múltiples secuencias en paralelo
+                
+                lista_f1 = list(f1)
+                if lista_f1[0] == " ": lista_f1[0] = "#"
+                f1_cerrada = "".join(lista_f1)
+                
+                lista_f2 = list(f2)
+                if lista_f2[-2] == " ": lista_f2[-2] = "#"
+                f2_cerrada = "".join(lista_f2)
+
+                print(f1_cerrada + " | " + f2_cerrada)
+            
+            print(f"\n HP: {self.jugador.vida} | Sala: {self.sala_actual} | Puerta: {'ABIERTA' if self.mapa_sala1.puerta_abierta else 'CERRADA'}") # Imprime la vida restante, la sala actual y el estado de la puerta.
+            print("Controles: WASD para mover, IJKL para disparar, Q para salir.")
+            
+    def _actualizar_logica(self):
+        if self.sala_actual == 1:
+            if not any(e.esta_viva for e in self.enemigos_sala1): 
+                self.mapa_sala1.puerta_abierta = True
+                self.mapa_sala2.puerta_abierta = True 
+
+        #Deteccion de cambio de sala
+        if self.sala_actual == 1 and self.jugador.x >= self.mapa_sala1.ancho - 1:
+            if self.mapa_sala1.puerta_abierta:
+                self.sala_actual = 2
+                self.jugador.x = 1 
+                self.jugador.y = self.mapa_sala2.alto // 2
+        
+                if not self.enemigos_sala2: 
+                    self.enemigos_sala2 = self.generar_enemigos_aleatorios(3, 2)
+            else:
+                self.jugador.x = self.mapa_sala1.ancho - 2 # Si esta cerrada,empujamos al jugador a la posicion anterior (antes de la puerta)
